@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jit.sose.mapper.zExpert.ZExpertIndicatorMapper">
+
+    <select id="sIndicatorIdListByExpertId" parameterType="org.jit.sose.entity.zExpert.ZExpert" resultType="java.lang.Integer">
+        SELECT zei.indicator_id
+        FROM z_expert_indicator zei
+        WHERE state = 'A' AND zei.expert_id in
+                              (SELECT id
+                              FROM z_expert ze
+                              WHERE ze.user_id = #{userId} AND ze.plan_id = #{planId} AND ze.state = 'A')
+    </select>
+
+    <insert id="inserts" parameterType="java.util.Map">
+        insert into z_expert_indicator (indicator_id, expert_id)
+        values
+            <foreach collection="indicatorIds" item="item" separator=",">
+                (#{item,jdbcType=INTEGER}, #{expertId,jdbcType=INTEGER})
+            </foreach>
+    </insert>
+
+    <update id="deleteAllByExpertId" parameterType="java.lang.Integer">
+        update z_expert_indicator set state = 'X' where expert_id = #{expertId}
+    </update>
+
+    <select id="getIndicatorScoreByExpert" parameterType="java.lang.Integer" resultMap="indicatorScore">
+        SELECT
+            zei.indicator_id AS indicatorId,
+            IFNULL(zei.score,'X') AS score,
+            IFNULL(zei.opinion,'X') AS opinion
+        FROM z_expert ze
+                 LEFT JOIN z_expert_indicator zei ON ze.id = zei.expert_id
+        WHERE user_id = #{userId} AND plan_id = #{planId}
+    </select>
+
+    <resultMap id="indicatorScore" type="java.util.HashMap">
+        <result property="indicatorId" column="indicatorId" javaType="java.lang.String"/>
+        <result property="score" column="score" javaType="java.lang.String"/>
+        <result property="opinion" column="opinion" javaType="java.lang.String"/>
+    </resultMap>
+
+</mapper>

@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jit.sose.mapper.zExpert.ZIndicatorMapper">
+
+    <sql id="Base_Column_List" >
+        id, `name`, content, `level`, last_id, company, user_id, plan_id, guide, `limit`, standard
+    </sql>
+
+    <select id="selectListAndList" resultMap="indicatorFirstResultMap" parameterType="java.lang.Integer">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM z_indicator
+        WHERE state='A'
+        AND level = 1
+        order by id
+    </select>
+
+    <resultMap id="indicatorFirstResultMap" type="org.jit.sose.entity.zExpert.ZIndicator">
+        <collection property="childList" column="{lastId=id}"
+                    ofType="org.jit.sose.entity.zExpert.ZIndicator"
+                    select="selectOtherList"/>
+    </resultMap>
+
+    <select id="selectOtherList" resultMap="indicatorFirstResultMap" parameterType="org.jit.sose.entity.zExpert.ZIndicator">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM z_indicator
+        WHERE state='A'
+        AND last_id=#{lastId,jdbcType=INTEGER}
+        order by id
+    </select>
+
+    <update id="updateById" parameterType="org.jit.sose.entity.zExpert.ZIndicator" >
+        update z_indicator
+        <set >
+            <if test="lastId != null" >
+                last_id = #{lastId,jdbcType=INTEGER},
+            </if>
+            <if test="name != null" >
+                `name` = #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="content != null" >
+                content = #{content,jdbcType=VARCHAR},
+            </if>
+            <if test="level != null" >
+                `level` = #{level,jdbcType=INTEGER},
+            </if>
+            <if test="state != null" >
+                `state` = #{state,jdbcType=CHAR},
+            </if>
+            <if test="company != null">
+                company = #{company,jdbcType=VARCHAR},
+            </if>
+            <if test="userId != null" >
+                user_id = #{userId,jdbcType=INTEGER},
+            </if>
+            <if test="planId != null" >
+                plan_id = #{planId,jdbcType=INTEGER},
+            </if>
+            <if test="guide != null" >
+                guide = #{guide,jdbcType=VARCHAR},
+            </if>
+            <if test="limit != null" >
+                `limit` = #{limit,jdbcType=VARCHAR},
+            </if>
+            <if test="standard != null" >
+                standard = #{standard,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <select id="firstLevelList"  resultType="org.jit.sose.entity.zExpert.ZIndicator" parameterType="java.lang.Integer">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM z_indicator
+        WHERE level=1 and state = 'A' and plan_id = #{planId}
+        ORDER BY id
+    </select>
+
+
+    <insert id="insert" parameterType="org.jit.sose.entity.zExpert.ZIndicator" >
+        insert into z_indicator
+        <trim prefix="(" suffix=")" suffixOverrides="," >
+            <if test="lastId != null" >
+                last_id,
+            </if>
+            <if test="name != null" >
+                `name`,
+            </if>
+            <if test="content != null" >
+                content,
+            </if>
+            <if test="level != null" >
+                `level`,
+            </if>
+            <if test="company != null">
+                company,
+            </if>
+            <if test="userId != null" >
+                user_id,
+            </if>
+            <if test="planId != null" >
+                plan_id,
+            </if>
+            <if test="guide != null" >
+                guide,
+            </if>
+            <if test="limit != null" >
+                `limit`,
+            </if>
+            <if test="standard != null" >
+                standard,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides="," >
+            <if test="lastId != null" >
+                #{lastId,jdbcType=INTEGER},
+            </if>
+            <if test="name != null" >
+                #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="content != null" >
+                #{content,jdbcType=VARCHAR},
+            </if>
+            <if test="level != null" >
+                #{level,jdbcType=INTEGER},
+            </if>
+            <if test="company != null">
+                #{company,jdbcType=VARCHAR},
+            </if>
+            <if test="userId != null" >
+                #{userId,jdbcType=INTEGER},
+            </if>
+            <if test="planId != null" >
+                #{planId,jdbcType=INTEGER},
+            </if>
+            <if test="guide != null" >
+                #{guide,jdbcType=VARCHAR},
+            </if>
+            <if test="limit != null" >
+                #{limit,jdbcType=VARCHAR},
+            </if>
+            <if test="standard != null" >
+                #{standard,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <select id="selectListAndList2" resultMap="indicatorFirstResultMap2" parameterType="java.lang.Integer">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM z_indicator
+        WHERE state='A'
+            and plan_id = #{planId}
+        AND level = 1
+        order by id
+    </select>
+
+    <resultMap id="indicatorFirstResultMap2" type="org.jit.sose.entity.zExpert.ZIndicator">
+        <collection property="childList" column="{lastId=id,planId=plan_id}"
+                    ofType="org.jit.sose.entity.zExpert.ZIndicator"
+                    select="selectOtherList"></collection>
+    </resultMap>
+
+    <select id="selectOtherList2" resultMap="indicatorFirstResultMap2" parameterType="org.jit.sose.entity.zExpert.ZIndicator">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM z_indicator
+        WHERE state='A'
+        AND last_id = #{lastId,jdbcType=INTEGER}
+        AND plan_id = #{planId,jdbcType=INTEGER}
+        order by id
+    </select>
+
+</mapper>

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jit.sose.mapper.zExpert.ZDataMapper">
+
+    <select id="getEvaluationPlanFile" parameterType="java.lang.Integer" resultType="java.util.Map">
+        SELECT zd.id AS dataId,
+               zd.file_name AS fileName,
+               zd.access_url AS accessUrl,
+               zei.indicator_id AS indicatorId,
+               zi.`name` AS indicatorName,
+               zei.score
+        FROM z_expert_indicator zei
+                 LEFT JOIN z_expert ze on ze.id = zei.expert_id
+                 LEFT JOIN z_data zd on zd.indicator_id = zei.indicator_id
+                 LEFT JOIN z_indicator zi on zi.id = zd.indicator_id
+        WHERE ze.user_id = #{userId} AND ze.plan_id = #{planId}
+          AND ze.state = 'A' AND zei.state = 'A' AND zd.state = 'A' AND zi.state = 'A' AND zd.level = 1
+          AND zi.`level` != 1 ORDER BY zi.id
+    </select>
+    
+    <select id="getEvaluationPlanFile2" parameterType="java.lang.Integer" resultMap="giveScoreMap">
+        SELECT zei.indicator_id AS indicatorId,
+               zi.name AS indicatorName,
+               zei.score AS score,
+               zd.id AS dataId,
+               zd.file_name AS fileName,
+               zd.access_url AS accessUrl
+        FROM z_expert ze
+                 LEFT JOIN z_expert_indicator zei ON zei.expert_id = ze.id
+                 LEFT JOIN z_indicator zi ON zi.id = zei.indicator_id
+                 LEFT JOIN z_data zd ON zd.indicator_id = zi.id
+        WHERE ze.user_id = #{userId} AND ze.plan_id = #{planId} AND zi.`level` != 1
+                 AND ze.state = 'A' AND zei.state = 'A' AND zi.state = 'A' AND zd.state = 'A'
+    </select>
+
+    <resultMap id="giveScoreMap" type="org.jit.sose.entity.zExpert.vo.ScoreVo">
+        <result property="indicatorId" column="indicatorId"/>
+        <result property="indicatorName" column="indicatorName"/>
+        <result property="score" column="score"/>
+        <collection property="zDataVoList" ofType="org.jit.sose.entity.zExpert.vo.ZDataVo">
+            <result property="dataId" column="dataId"/>
+            <result property="fileName" column="fileName"/>
+            <result property="accessUrl" column="accessUrl"/>
+        </collection>
+    </resultMap>
+
+    <select id="getEvaluationPlanFile3" parameterType="java.lang.Integer" resultMap="giveScoreMap3">
+        SELECT zi.id AS indicatorId,
+               zi.`name` AS indicatorName3,
+               zi.last_id AS lastId,
+               zi.guide,
+               zi.limit,
+               zi.standard,
+               zd.id AS dataId,
+               zd.file_name AS fileName,
+               zd.access_url AS accessUrl
+        FROM z_indicator zi
+                 LEFT JOIN z_data zd ON zi.id = zd.indicator_id
+        WHERE zi.plan_id = #{planId} AND zi.`level` = 3 AND zi.state = 'A' AND zd.state = 'A' AND zd.level = 1
+        ORDER BY indicatorName3
+    </select>
+
+    <resultMap id="giveScoreMap3" type="org.jit.sose.entity.zExpert.vo.ScoreVo">
+        <result property="indicatorId" column="indicatorId"/>
+        <result property="indicatorName3" column="indicatorName3"/>
+        <result property="lastId" column="lastId"/>
+        <result property="guide" column="guide"/>
+        <result property="limit" column="limit"/>
+        <result property="standard" column="standard"/>
+        <association property="indicatorName2" column="{id=lastId}" javaType="java.lang.String"
+                     select="getIndicatorName2"/>
+        <association property="indicatorName1" column="{id=lastId}" javaType="java.lang.String"
+                     select="getIndicatorName1"/>
+        <collection property="zDataVoList" ofType="org.jit.sose.entity.zExpert.vo.ZDataVo">
+            <result property="dataId" column="dataId"/>
+            <result property="fileName" column="fileName"/>
+            <result property="accessUrl" column="accessUrl"/>
+        </collection>
+    </resultMap>
+
+    <select id="getIndicatorName2" resultType="java.lang.String">
+        select `name` from z_indicator where id = #{id}
+    </select>
+
+    <select id="getIndicatorName1" resultType="java.lang.String">
+        select `name` from z_indicator where id = (select last_id from z_indicator where id = #{id})
+    </select>
+
+    <select id="getPublicFileTree" resultMap="publicFileTree">
+        SELECT * FROM `z_data` WHERE level = 0 AND state = 'A' AND data_type = 1
+    </select>
+
+    <resultMap id="publicFileTree" type="org.jit.sose.entity.zExpert.vo.PublicFileVo">
+        <collection property="childList" ofType="org.jit.sose.entity.zExpert.vo.PublicFileVo" column="{lastId = id}" select="getPublicFileByLastId"/>
+    </resultMap>
+
+    <select id="getPublicFileByLastId" resultType="org.jit.sose.entity.zExpert.vo.PublicFileVo">
+        SELECT * FROM `z_data` WHERE level = 1 AND state = 'A' AND data_type = 1 AND last_id = #{lastId}
+    </select>
+
+    <select id="getIndicatorFileTree" resultMap="indicatorFileTree">
+        SELECT * FROM `z_data` WHERE level = 0 AND state = 'A' AND data_type = 0 AND indicator_id = #{indicatorId}
+    </select>
+
+    <resultMap id="indicatorFileTree" type="org.jit.sose.entity.zExpert.vo.PublicFileVo">
+        <collection property="childList" ofType="org.jit.sose.entity.zExpert.vo.PublicFileVo" column="{lastId = id}" select="getIndicatorFileByLastId"/>
+    </resultMap>
+
+    <select id="getIndicatorFileByLastId" resultType="org.jit.sose.entity.zExpert.vo.PublicFileVo">
+        SELECT * FROM `z_data` WHERE level = 1 AND state = 'A' AND data_type = 0 AND last_id = #{lastId}
+    </select>
+    
+</mapper>

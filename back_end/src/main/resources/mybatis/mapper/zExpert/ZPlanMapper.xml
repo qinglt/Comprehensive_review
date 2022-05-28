@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jit.sose.mapper.zExpert.ZPlanMapper">
+
+    <select id="queryAll" resultType="org.jit.sose.entity.zExpert.ZPlan">
+        select * from z_plan where state = 'A'
+    </select>
+
+    <select id="queryUserName" resultType="java.util.HashMap">
+        SELECT zi.id as indicatorId, concat(u.username, '(', s.staff_name, ')') as expertName
+        FROM z_indicator zi
+                 LEFT JOIN `user` u ON zi.user_id = u.id
+                 LEFT JOIN staff_info s ON s.user_id = zi.user_id
+        WHERE u.state = 'A' AND zi.state = 'A' AND u.type = 'A' AND s.state = 'A'
+    </select>
+
+    <insert id="insert" parameterType="org.jit.sose.entity.zExpert.ZPlan">
+        insert into z_plan (name) values (#{name})
+    </insert>
+
+    <update id="deleteById" parameterType="java.lang.Integer">
+        update z_plan set state = 'X' where id = #{id}
+    </update>
+
+    <update id="update" parameterType="org.jit.sose.entity.zExpert.ZPlan">
+        update z_plan set name = #{name} where id = #{id}
+    </update>
+
+</mapper>

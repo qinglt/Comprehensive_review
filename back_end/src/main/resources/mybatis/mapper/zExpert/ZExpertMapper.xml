@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jit.sose.mapper.zExpert.ZExpertMapper">
+
+    <insert id="inserts" parameterType="java.util.Map">
+        insert into z_expert (user_id, plan_id)
+        values
+               <foreach collection="userIds" item="item" separator=",">
+                   (#{item,jdbcType=INTEGER}, #{planId,jdbcType=INTEGER})
+               </foreach>
+    </insert>
+
+    <update id="deletes" parameterType="java.util.Map">
+        update z_expert set state = 'X'
+        where
+              <foreach collection="userIds" item="item" separator="or">
+                  (user_id = #{item,jdbcType=INTEGER} and plan_id = #{planId,jdbcType=INTEGER})
+              </foreach>
+    </update>
+
+    <select id="queryByPlanId" resultType="java.util.HashMap">
+        select ze.user_id as userId, s.staff_name as expertName
+        from z_expert ze
+                 LEFT JOIN `user` u ON ze.user_id = u.id
+                 LEFT JOIN staff_info s ON ze.user_id = s.user_id
+        where u.state = 'A' AND u.type = 'A' AND s.state = 'A' AND ze.state = 'A' AND ze.plan_id = #{planId}
+    </select>
+
+    <select id="queryId" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        select id from z_expert where user_id = #{userId} AND plan_id = #{planId} AND state = 'A'
+    </select>
+    
+</mapper>
